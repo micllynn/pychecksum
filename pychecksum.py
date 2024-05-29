@@ -76,7 +76,7 @@ def get_folder_checksum(folder, checksum_type=hashlib.md5(),
 
 
 def compare_folder_checksums(folder_pre, folder_post,
-                             checksum_type=hashlib.md5(),
+                             checksum_type=hashlib.sha256(),
                              verbose=True):
     """
     Compares checksums from two folders that should be identical
