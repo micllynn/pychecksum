@@ -37,11 +37,21 @@ result = pycs.compare_folder_checksums(
 	'localdrive/folder_original',
 	'backupdrive/folder_copy',
 	checksum_type=hashlib.md5(),
+```
+
+## Output more information about checksums that don't match
+`verbose=True` will print an update of which files are currently being
+checksum-verified, and which ones the checksum doesn't match for.
+
+```python3
+result = pycs.compare_folder_checksums(
+	'localdrive/folder_original',
+	'backupdrive/folder_copy',
 	verbose=True)
 ```
 
-`verbose=True` will print an update of which files are currently being
-checksum-verified, and which ones the checksum doesn't match for.
+Output:
+
 
 
 ## Compare individual files

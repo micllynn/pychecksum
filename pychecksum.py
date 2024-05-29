@@ -11,12 +11,11 @@ decide whether to re-run the backup or not).
 
 (Written for Lak Lab)
 """
-
 import hashlib
 import os
 import sys
 
-def get_checksum(fname, checksum_type=hashlib.md5(),
+def get_checksum(fname, checksum_type=hashlib.md5,
                  verbose=False):
     """
     computes checksum of a given file.
@@ -24,11 +23,15 @@ def get_checksum(fname, checksum_type=hashlib.md5(),
     Parameters
     ------------
     checksum_type : str
-        Can either be hashlib.md5(),
-        hashlib.sha1() or hashlib.sha256()
+        Can be hashlib.md5,
+        hashlib.sha1, hashlib.sha256, etc.
+        (Note that you merely need to provide a class, no need to initialize
+        with brackets)
     verbse : bool
         Whether to print updates or not
     """
+    checksum = checksum_type()
+
     if verbose is True:
         print(f'computing checksum of {fname}... ')
     with open(fname, 'rb') as f:
@@ -36,14 +39,14 @@ def get_checksum(fname, checksum_type=hashlib.md5(),
             chunk = f.read(16 * 1024)
             if not chunk:
                 break
-            checksum_type.update(chunk)
+            checksum.update(chunk)
         if verbose is True:
-            print(f'\t{checksum_type.name} checksum: {checksum_type.hexdigest()}')
+            print(f'\t{checksum.name} checksum: {checksum.hexdigest()}')
 
-    return checksum_type.hexdigest()
+    return checksum.hexdigest()
 
 
-def get_folder_checksum(folder, checksum_type=hashlib.md5(),
+def get_folder_checksum(folder, checksum_type=hashlib.md5,
                         verbose=False):
     """
     calls get_checksum on all elements of a folder, and stores the outputs
@@ -52,12 +55,13 @@ def get_folder_checksum(folder, checksum_type=hashlib.md5(),
     Parameters
     -----------
     checksum_type : str
-        Can either be hashlib.md5(),
-        hashlib.sha1() or hashlib.sha256()
+        Can be hashlib.md5,
+        hashlib.sha1, hashlib.sha256, etc.
+        (Note that you merely need to provide a class, no need to initialize
+        with brackets)
     verbose : bool
         Whether to print updates or not
     """
-
     fnames = os.listdir(folder)
     checksums = {}
 
@@ -76,8 +80,9 @@ def get_folder_checksum(folder, checksum_type=hashlib.md5(),
 
 
 def compare_folder_checksums(folder_pre, folder_post,
-                             checksum_type=hashlib.sha256(),
-                             verbose=True):
+                             checksum_type=hashlib.sha256,
+                             verbose=True,
+                             verbose_folder_checksums=False):
     """
     Compares checksums from two folders that should be identical
     (for example, an original data folder and its copy on the server).
@@ -91,20 +96,25 @@ def compare_folder_checksums(folder_pre, folder_post,
     folder_post : str
         Name of the second folder to compare
     checksum_type : str
-        Can either be hashlib.md5(),
-        hashlib.sha1() or hashlib.sha256()
+        Can be hashlib.md5,
+        hashlib.sha1, hashlib.sha256, etc.
+        (Note that you merely need to provide a class, no need to initialize
+        with brackets)
     verbose : bool
-        Whether to print updates or not (eg files where checksum doesn't match)
-    
+        Whether to print high-level updates about checksums
+        (eg files where checksum doesn't match)
+    verbose_folder_checksums : bool
+        Whether to print more granular checksum updates
+        (precise checksums for each file in the folders)
 
     Returns True if the checksums match, and False otherwise.
     """
     checksums_pre = get_folder_checksum(folder_pre,
                                         checksum_type=checksum_type,
-                                        verbose=verbose)
+                                        verbose=verbose_folder_checksums)
     checksums_post = get_folder_checksum(folder_post,
                                          checksum_type=checksum_type,
-                                         verbose=verbose)
+                                         verbose=verbose_folder_checksums)
 
     assert checksums_pre.keys() == checksums_post.keys(), "files don't match"
 
@@ -114,11 +124,14 @@ def compare_folder_checksums(folder_pre, folder_post,
     matching_checksums = True
     for fname in checksums_pre.keys():
         if verbose is True:
-            print(f'\t{fname}...')
+            print(f'\t{fname}...', end='\t')
 
         if checksums_pre[fname] != checksums_post[fname]:
             matching_checksums = False
             if verbose is True:
-                print(f'\t\t ** checksum for {fname} does not match ** ')
+                print(f' ***** checksum does not match *****  ')
+        elif checksums_pre[fname] == checksums_post[fname]:
+            if verbose is True:
+                print(f'checksum matches.')
 
     return matching_checksums
