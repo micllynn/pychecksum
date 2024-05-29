@@ -50,8 +50,15 @@ result = pycs.compare_folder_checksums(
 	verbose=True)
 ```
 
-Output:
-
+verbose output:
+```python3
+comparing checksums...
+	file1.tiff...	checksum matches.
+	file2.tiff...	checksum matches.
+	file3.tiff...	 ***** checksum does not match *****
+	file4.tiff...	checksum matches.
+	file5.tiff...	checksum matches.
+```
 
 
 ## Compare individual files
