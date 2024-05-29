@@ -12,7 +12,7 @@ are corrupted and whether the folder copy operation needs to be rerun.
 ```python3
 git clone https://github.com/micllynn/pychecksum
 cd pychecksum
-python3 setup.py install
+python3 -m pip install .
 ```
 
 # Usage
