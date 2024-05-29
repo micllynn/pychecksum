@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='pychecksum',
       version='0.1',
@@ -7,5 +7,4 @@ setup(name='pychecksum',
       author_email='micllynn@gmail.com',
       url='https://github.com/micllynn/pychecksum/',
       license='MIT',
-      packages='pychecksum',
-      install_requires=['python>=3.0'])
+      py_modules=['pychecksum'])
