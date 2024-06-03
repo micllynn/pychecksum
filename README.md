@@ -23,12 +23,12 @@ present on the local drive (ie will be synchronized to the server).
 import pychecksum as pycs
 
 syncobj = pycs.FolderSyncObj(
-	'/localdrive/folder_original',
-	'/backupdrive/folder_copy')
+	dir_local='/localdrive/folder_original',
+	dir_server='/backupdrive/folder_copy')
 ```
 
 Next, we perform some synchronization event in the terminal:
-```bash
+```
 >>> rsync, rclone, robocopy, etc. to synchronize local and server folders
 ```
 
@@ -41,7 +41,7 @@ output = syncobj.verify_checksums(
 	rm_folders_if_integrity_bad=True)
 ```
 
-```bash
+```
 local folder: /localdrive/folder_original...
 server folder: /backupdrive/folder_copy...
 comparing checksums...
@@ -57,7 +57,7 @@ removing folders on server...
 ```
 
 The `output` contains a more granular list of checksum verification for each file:
-```python3
+```
 print(output.paths)
 >> {'/localdrive/folder_original': False}  # indicates this fodler failed the checksum calc.
 print(output.transfer_ok)
