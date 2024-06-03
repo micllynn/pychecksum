@@ -366,7 +366,7 @@ def compare_folder_checksums(folder_pre, folder_post,
     matching_checksums = True
     for fname in checksums_pre.keys():
         if verbose is True:
-            print('\t{}...'.format(fname), end='\t')
+            print('\t{}...'.format(fname))
 
         if checksums_pre[fname] != checksums_post[fname]:
             matching_checksums = False
