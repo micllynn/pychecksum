@@ -196,8 +196,8 @@ class FolderSyncObj(object):
 
         for ind, local_folder in enumerate(self.diff_fullpath.local):
             if verbose == True:
-                print(f'local folder: {self.diff_fullpath.local[ind]}...')
-                print(f'server folder: {self.diff_fullpath.server[ind]}...')
+                print('local folder: {}...'.format(self.diff_fullpath.local[ind]))
+                print('server folder: {}...'.format(self.diff_fullpath.server[ind]))
             checksum_obj.paths[local_folder] = compare_folder_checksums(
                 self.diff_fullpath.local[ind],
                 self.diff_fullpath.server[ind],
@@ -229,15 +229,15 @@ class FolderSyncObj(object):
 
         for path in diffs_serverpath:
             if ask_before_rm is True:
-                check = input(f'\tare you sure you want to delete {path}? (y/n)')
+                check = input('\tare you sure you want to delete {}? (y/n)'.format(path))
                 if check == 'y':
                     shutil.rmtree(path, ignore_errors=True)
-                    print(f'\t\tdeleted {path}')
+                    print('\t\tdeleted {}'.format(path))
                 else:
                     pass
             elif ask_before_rm is False:
                 shutil.rmtree(path, ignore_errors=True)
-                print(f'\tdeleted {path}')
+                print('\tdeleted {}'.format(path))
         return
 
 
@@ -259,7 +259,7 @@ def get_checksum(fname, checksum_type=hashlib.sha256,
     checksum = checksum_type()
 
     if verbose is True:
-        print(f'computing checksum of {fname}... ')
+        print('computing checksum of {}... '.format(fname))
     with open(fname, 'rb') as f:
         while True:
             chunk = f.read(16 * 1024)
@@ -267,7 +267,8 @@ def get_checksum(fname, checksum_type=hashlib.sha256,
                 break
             checksum.update(chunk)
         if verbose is True:
-            print(f'\t{checksum.name} checksum: {checksum.hexdigest()}')
+            print('\t{} checksum: {}'.format(
+                checksum.name, checksum.hexdigest()))
 
     return checksum.hexdigest()
 
@@ -302,7 +303,7 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
                     print('')  # necessary to skip a line
             except IsADirectoryError:
                 if verbose is True:
-                    print(f'{fname} is a directory, passing...\n')
+                    print('{} is a directory, passing...\n'.format(fname))
 
     if recursive is True:
         path_obj = pathlib.Path(folder)
@@ -365,14 +366,14 @@ def compare_folder_checksums(folder_pre, folder_post,
     matching_checksums = True
     for fname in checksums_pre.keys():
         if verbose is True:
-            print(f'\t{fname}...', end='\t')
+            print('\t{}...'.format(fname), end='\t')
 
         if checksums_pre[fname] != checksums_post[fname]:
             matching_checksums = False
             if verbose is True:
-                print(f' ***** checksum does not match *****  ')
+                print(' ***** checksum does not match *****  ')
         elif checksums_pre[fname] == checksums_post[fname]:
             if verbose is True:
-                print(f'checksum matches.')
+                print('checksum matches.')
 
     return matching_checksums

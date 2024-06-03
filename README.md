@@ -15,7 +15,7 @@ individual files or folders without direct comparison.
 ```python3
 git clone https://github.com/micllynn/pychecksum
 cd pychecksum
-python3 -m pip install .
+python -m pip install .
 ```
 
 # Usage
