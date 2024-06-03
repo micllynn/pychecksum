@@ -36,7 +36,8 @@ Next, we perform some synchronization event in the terminal:
 ```
 
 We can then use the method `syncobj.verify_checksums` to ensure that
-newly copied folders to the server have matching checksums to the originals:
+newly copied folders to the server have matching checksums to the originals,
+and delete copied folders that don't have matching checksums:
 ```python3
 output = syncobj.verify_checksums(
 	checksum_type=hashlib.sha256,
@@ -60,10 +61,25 @@ removing folders on server...
 
 ```
 
-Note that `rm_folders_if_integrity_bad` will automatically remove the folders that
-have failed the checksum calculation (with a prompt), for ease of resynchronization.
-(This can be turned off, as can `ask_before_rm=True`.)
+## Parameters
+- `checksum_type=hashlib.sha256` allows specification of the hash algorithm
+(any in `hashlib` can be used).
+- `rm_folders_if_integrity_bad=True` will automatically remove the folders that
+have failed the checksum calculation, allowing quick resynchronization.
+- `ask_before_rm=True` will ask before removing folders that have failed the
+checksum calculation.
+- `verbose=True` prints simple updates about the checksum calculation (as above).
+- `verbose_folder_checksums=True` prints the full checksum info for each file:
+```
+computing checksum of folder_original/file1.tiff...
+	sha256 checksum: 13b7e800bd1530ee31459e0c8f7876fff9cd993f6fce718a5eee622429c222bb
 
+computing checksum of folder_original/file2.tiff...
+	sha256 checksum: 4523496bd224607ea9f5283494534bcffaf9270e976936c35ca8e3819f85df1e
+```
+
+
+## Output
 The `output` contains more granular details on the checksums:
 ```
 print(output.paths)
@@ -88,16 +104,6 @@ result = pycs.compare_folder_checksums(
 ```
 print(result)
 >>> True  # Returns true if the folder checksums match
-```
-
-
-The `verbose_folder_checksums` option prints the full checksum for each file:
-```
-computing checksum of folder_original/file1.tiff...
-	sha256 checksum: 13b7e800bd1530ee31459e0c8f7876fff9cd993f6fce718a5eee622429c222bb
-
-computing checksum of folder_original/file2.tiff...
-	sha256 checksum: 4523496bd224607ea9f5283494534bcffaf9270e976936c35ca8e3819f85df1e
 ```
 
 ## `pycs.get_checksum`
