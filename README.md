@@ -1,12 +1,15 @@
 # Introduction
 
-pychecksum contains a set of tracking and checksum calculation tools to
+pychecksum contains a set of efficient tracking and checksum calculation tools to
 verify the data integrity of folders that are being synchronized from local
 hard drives to a server.
 
 Folders are tracked and verified in an object-oriented framework,
 and if checksum calculations don't match, the new subfolders
-can be automatically deleted for subsequent resynchronization
+can be automatically deleted for subsequent resynchronization.
+
+More granular tools are also included for computing checksums on
+individual files or folders without direct comparison.
 
 # Installation
 ```python3
@@ -32,15 +35,16 @@ Next, we perform some synchronization event in the terminal:
 >>> rsync, rclone, robocopy, etc. to synchronize local and server folders
 ```
 
-We can then use the `syncobj` to verify the checksums of the subset of new folders.
-- Note that `rm_folders_if_integrity_bad` will automatically remove the folders that
-have failed the checksum calculation (with a prompt), for ease of resynchronization.
+We can then use the method `syncobj.verify_checksums` to ensure that
+newly copied folders to the server have matching checksums to the originals:
 ```python3
 output = syncobj.verify_checksums(
 	checksum_type=hashlib.sha256,
-	rm_folders_if_integrity_bad=True)
+	rm_folders_if_integrity_bad=True,
+	ask_before_rm=True)
 ```
 
+Which prints the following updates:
 ```
 local folder: /localdrive/folder_original...
 server folder: /backupdrive/folder_copy...
@@ -56,7 +60,11 @@ removing folders on server...
 
 ```
 
-The `output` contains a more granular list of checksum verification for each file:
+Note that `rm_folders_if_integrity_bad` will automatically remove the folders that
+have failed the checksum calculation (with a prompt), for ease of resynchronization.
+(This can be turned off, as can `ask_before_rm=True`.)
+
+The `output` contains more granular details on the checksums:
 ```
 print(output.paths)
 >> {'/localdrive/folder_original': False}  # indicates this fodler failed the checksum calc.
@@ -77,7 +85,13 @@ result = pycs.compare_folder_checksums(
 	verbose_folder_checksums=False)
 ```
 
-`verbose_folder_checksums` output:
+```
+print(result)
+>>> True  # Returns true if the folder checksums match
+```
+
+
+The `verbose_folder_checksums` option prints the full checksum for each file:
 ```
 computing checksum of folder_original/file1.tiff...
 	sha256 checksum: 13b7e800bd1530ee31459e0c8f7876fff9cd993f6fce718a5eee622429c222bb
@@ -86,10 +100,9 @@ computing checksum of folder_original/file2.tiff...
 	sha256 checksum: 4523496bd224607ea9f5283494534bcffaf9270e976936c35ca8e3819f85df1e
 ```
 
-## `pycs.get_checksum` and `pycs.get_folder_checksum`
-These functions output checksums for individual files and folders respectively.
+## `pycs.get_checksum`
+This computes a checksum for an individual file.
 
-Checksum of a single file:
 ```python3
 result = pycs.get_checksum(
 	'localdrive/folder_original/some_file.tiff'
@@ -97,6 +110,12 @@ result = pycs.get_checksum(
 	verbose=True)
 ```
 
+```
+print(result)
+>>> 13b7e800bd1530ee31459e0c8f7876fff9cd993f6fce718a5eee622429c222bb
+```
+
+## `pycs.get_folder_checksum`
 This returns a dictionary of checksum values for each file in a folder:
 ```python3
 result = pycs.get_folder_checksum(
@@ -104,3 +123,10 @@ result = pycs.get_folder_checksum(
 	checksum_type=hashlib.sha256,
 	verbose=True)
 ```
+
+```
+print(result)
+>>> {'file1': 13b7e800bd1530ee31459e0c8f7876fff9cd993f6fce718a5eee622429c222bb,
+	 'file2': 4523496bd224607ea9f5283494534bcffaf9270e976936c35ca8e3819f85df1e}
+```
+
