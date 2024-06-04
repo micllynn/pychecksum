@@ -117,7 +117,7 @@ class FolderSyncObj(object):
             String corresponding to server directory
         """
         if verbose is True:
-            print(print_level,
+            print(print_level+
                   'setting up FolderSyncObj with dir_local={}, dir_server={}'
                   .format(dir_local, dir_server))
 
@@ -211,8 +211,8 @@ class FolderSyncObj(object):
 
         for ind, local_folder in enumerate(self.diff_fullpath.local):
             if verbose == True:
-                print(print_level, 'local folder: {}...'.format(self.diff_fullpath.local[ind]))
-                print(print_level, 'server folder: {}...'.format(self.diff_fullpath.server[ind]))
+                print(print_level+'local folder: {}...'.format(self.diff_fullpath.local[ind]))
+                print(print_level+'server folder: {}...'.format(self.diff_fullpath.server[ind]))
             checksum_obj.paths[local_folder] = compare_folder_checksums(
                 self.diff_fullpath.local[ind],
                 self.diff_fullpath.server[ind],
@@ -226,15 +226,15 @@ class FolderSyncObj(object):
 
         if checksum_obj.transfer_ok == False:
             if verbose == True:
-                print(print_level,
-                      '\n**** file integrity compromised during transfer **** ')
+                print('\n'+print_level+
+                      '**** file integrity compromised during transfer **** ')
             if rm_folders_if_integrity_bad == True:
-                print(print_level,
+                print(print_level+
                       'removing folders on server...')
                 self.rm_new_folders(ask_before_rm=ask_before_rm)
         elif checksum_obj.transfer_ok == True:
             if verbose == True:
-                print(print_level,
+                print(print_level+
                       '**** file integrity ok ****')
             
         return checksum_obj
