@@ -17,7 +17,12 @@ import filecmp
 import shutil
 import os
 import sys
-from types import SimpleNamespace
+
+if sys.version_info.major >= 3 and sys.version_info.minor >=3:
+    from types import SimpleNamespace
+else:
+    class SimpleNamespace:
+        pass
 
 
 class TrackDir(object):
