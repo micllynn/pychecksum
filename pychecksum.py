@@ -359,7 +359,7 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
                 print('file: {}, folder: {}'.format(path_file, folder))
             _rel_path = get_rel_path(path_file, folder)
             checksums[_rel_path] = get_checksum(
-                path_file,
+                str(path_file),
                 checksum_type=checksum_type,
                 verbose=verbose)
 
