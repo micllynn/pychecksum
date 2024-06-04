@@ -84,7 +84,8 @@ class TrackDir(object):
 
 
 class FolderSyncObj(object):
-    def __init__(self, dir_local, dir_server):
+    def __init__(self, dir_local, dir_server, verbose=True,
+                 print_level='\t'):
         """
         Object to track a folder which will be synchronized between a
         local drive and the server.
@@ -115,6 +116,10 @@ class FolderSyncObj(object):
         dir_server : str
             String corresponding to server directory
         """
+        if verbose is True:
+            print(print_level,
+                  'setting up FolderSyncObj with dir_local={}, dir_server={}'
+                  .format(dir_local, dir_server))
 
         # setup
         self.path = SimpleNamespace()
@@ -125,8 +130,12 @@ class FolderSyncObj(object):
                                       self.path.server)
 
         self.diff_fullpath = SimpleNamespace()
-        self.diff_fullpath.local = self.get_diffs_localpaths()
-        self.diff_fullpath.server = self.get_diffs_serverpaths()
+        
+        try:
+            self.diff_fullpath.local = self.get_diffs_localpaths()
+            self.diff_fullpath.server = self.get_diffs_serverpaths()
+        except FileNotFoundError:
+            print('one of the inputs is not a directory')
 
     def list_diffs(self):
         """
@@ -165,7 +174,8 @@ class FolderSyncObj(object):
     def verify_checksums(self, checksum_type=hashlib.sha256,
                          verbose=True, verbose_folder_checksums=False,
                          rm_folders_if_integrity_bad=False,
-                         ask_before_rm=True):
+                         ask_before_rm=True,
+                         print_level='\t'):
         """Call this method after the files have been transferred from local
         to server. Performs checksum computation on all files that have been
         newly transferred from local to server, prints updates on whether
@@ -201,8 +211,8 @@ class FolderSyncObj(object):
 
         for ind, local_folder in enumerate(self.diff_fullpath.local):
             if verbose == True:
-                print('local folder: {}...'.format(self.diff_fullpath.local[ind]))
-                print('server folder: {}...'.format(self.diff_fullpath.server[ind]))
+                print(print_level, 'local folder: {}...'.format(self.diff_fullpath.local[ind]))
+                print(print_level, 'server folder: {}...'.format(self.diff_fullpath.server[ind]))
             checksum_obj.paths[local_folder] = compare_folder_checksums(
                 self.diff_fullpath.local[ind],
                 self.diff_fullpath.server[ind],
@@ -212,17 +222,20 @@ class FolderSyncObj(object):
 
             if checksum_obj.paths[local_folder] == False:
                  checksum_obj.transfer_ok = False
-            print('------------')
+            print(print_level, '------------')
 
         if checksum_obj.transfer_ok == False:
             if verbose == True:
-                print('\n**** file integrity compromised during transfer **** ')
+                print(print_level,
+                      '\n**** file integrity compromised during transfer **** ')
             if rm_folders_if_integrity_bad == True:
-                print('removing folders on server...')
+                print(print_level,
+                      'removing folders on server...')
                 self.rm_new_folders(ask_before_rm=ask_before_rm)
         elif checksum_obj.transfer_ok == True:
             if verbose == True:
-                print('**** file integrity ok ****')
+                print(print_level,
+                      '**** file integrity ok ****')
             
         return checksum_obj
 
