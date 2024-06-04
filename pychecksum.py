@@ -233,7 +233,7 @@ class FolderSyncObj(object):
 
             if checksum_obj.paths[local_folder] == False:
                  checksum_obj.transfer_ok = False
-            print(print_level, '------------')
+            print(print_level+'------------')
 
         if checksum_obj.transfer_ok == False:
             if verbose == True:
