@@ -141,8 +141,6 @@ class FolderSyncObj(object):
         try:
             self.diff_fullpath.local = self.get_diffs_localpaths()
             self.diff_fullpath.server = self.get_diffs_serverpaths()
-            if verbose is True:
-                print(self.diff_fullpath.local)
         except FileNotFoundError:
             print('one of the inputs is not a directory')
 
@@ -356,6 +354,8 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
         checksums_pathobj = []
 
         for path_file in path_files:
+            if verbose is True:
+                print('folder: {}, path_file: {}'.format(folder, path_file))
             _rel_path = get_rel_path(path_file, folder)
             checksums[_rel_path] = get_checksum(
                 path_file,
