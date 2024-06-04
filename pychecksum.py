@@ -24,6 +24,9 @@ else:
     class SimpleNamespace:
         pass
 
+def get_rel_path(folder, parent_folder):
+    return str(folder).split(parent_folder)[1]
+
 
 class TrackDir(object):
     def __init__(self, path):
@@ -84,7 +87,8 @@ class TrackDir(object):
 
 
 class FolderSyncObj(object):
-    def __init__(self, dir_local, dir_server, verbose=True,
+    def __init__(self, dir_local, dir_server,
+                 verbose=True,
                  print_level='\t'):
         """
         Object to track a folder which will be synchronized between a
@@ -118,8 +122,11 @@ class FolderSyncObj(object):
         """
         if verbose is True:
             print(print_level+
-                  'setting up FolderSyncObj with dir_local={}, dir_server={}'
-                  .format(dir_local, dir_server))
+                  'setting up FolderSyncObj...')
+            print(print_level+'\t'+
+                  'local folder: {}'.format(dir_local))
+            print(print_level+'\t'+
+                  'server folder: {}'.format(dir_server))
 
         # setup
         self.path = SimpleNamespace()
@@ -175,6 +182,7 @@ class FolderSyncObj(object):
                          verbose=True, verbose_folder_checksums=False,
                          rm_folders_if_integrity_bad=False,
                          ask_before_rm=True,
+                         recursive_comp=True,
                          print_level='\t'):
         """Call this method after the files have been transferred from local
         to server. Performs checksum computation on all files that have been
@@ -213,12 +221,14 @@ class FolderSyncObj(object):
             if verbose == True:
                 print(print_level+'local folder: {}...'.format(self.diff_fullpath.local[ind]))
                 print(print_level+'server folder: {}...'.format(self.diff_fullpath.server[ind]))
+                print('verifying checksums...\n-------------')
             checksum_obj.paths[local_folder] = compare_folder_checksums(
                 self.diff_fullpath.local[ind],
                 self.diff_fullpath.server[ind],
                 checksum_type=checksum_type,
                 verbose=verbose,
-                verbose_folder_checksums=verbose_folder_checksums)
+                verbose_folder_checksums=verbose_folder_checksums,
+                recursive=recursive_comp)
 
             if checksum_obj.paths[local_folder] == False:
                  checksum_obj.transfer_ok = False
@@ -231,7 +241,8 @@ class FolderSyncObj(object):
             if rm_folders_if_integrity_bad == True:
                 print(print_level+
                       'removing folders on server...')
-                self.rm_new_folders(ask_before_rm=ask_before_rm)
+                self.rm_new_folders(ask_before_rm=ask_before_rm,
+                                    print_level=print_level)
         elif checksum_obj.transfer_ok == True:
             if verbose == True:
                 print(print_level+
@@ -239,7 +250,7 @@ class FolderSyncObj(object):
             
         return checksum_obj
 
-    def rm_new_folders(self, ask_before_rm=True):
+    def rm_new_folders(self, ask_before_rm=True, print_level='\t'):
         """Removes all new folders in Server that were created during the
         transfer process (ie when the folder was started to be tracked)
         """
@@ -247,15 +258,19 @@ class FolderSyncObj(object):
 
         for path in diffs_serverpath:
             if ask_before_rm is True:
-                check = input('\tare you sure you want to delete {}? (y/n)'.format(path))
+                check = input(print_level
+                              +'are you sure you want to delete {}? (y/n)'
+                              .format(path))
                 if check == 'y':
                     shutil.rmtree(path, ignore_errors=True)
-                    print('\t\tdeleted {}'.format(path))
+                    print(print_level
+                          +'deleted {}'.format(path))
                 else:
                     pass
             elif ask_before_rm is False:
                 shutil.rmtree(path, ignore_errors=True)
-                print('\tdeleted {}'.format(path))
+                print(print_level
+                      +'deleted {}'.format(path))
         return
 
 
@@ -292,7 +307,8 @@ def get_checksum(fname, checksum_type=hashlib.sha256,
 
 
 def get_folder_checksum(folder, checksum_type=hashlib.sha256,
-                        recursive=False,
+                        recursive=True,
+                        include_hidden=False,
                         verbose=False):
     """
     calls get_checksum on all elements of a folder, and stores the outputs
@@ -325,16 +341,24 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
 
     if recursive is True:
         path_obj = pathlib.Path(folder)
-        path_files = [x for x in path_obj.rglob('*') if x.is_file()]
+
+        if include_hidden is False:
+            path_files = [x.resolve() for x in path_obj.rglob('*')
+                          if x.is_file()
+                          and not os.path.split(str(x.resolve()))[-1].startswith('.')]
+        elif include_hidden is True:
+            path_files = [x.resolve() for x in path_obj.rglob('*')
+                          if x.is_file()]
+        
         checksums = {}
         checksums_pathobj = []
 
         for path_file in path_files:
-            checksums[path_file.name] = get_checksum(
+            _rel_path = get_rel_path(path_file, folder)
+            checksums[_rel_path] = get_checksum(
                 path_file,
                 checksum_type=checksum_type,
                 verbose=verbose)
-            # checksums_pathobj.extend(path_file)
 
     return checksums
 
@@ -342,7 +366,8 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
 def compare_folder_checksums(folder_pre, folder_post,
                              checksum_type=hashlib.sha256,
                              verbose=True,
-                             verbose_folder_checksums=False):
+                             verbose_folder_checksums=False,
+                             recursive=True):
     """
     Compares checksums from two folders that should be identical
     (for example, an original data folder and its copy on the server).
@@ -371,27 +396,31 @@ def compare_folder_checksums(folder_pre, folder_post,
     """
     checksums_pre = get_folder_checksum(folder_pre,
                                         checksum_type=checksum_type,
-                                        verbose=verbose_folder_checksums)
+                                        verbose=verbose_folder_checksums,
+                                        recursive=recursive)
     checksums_post = get_folder_checksum(folder_post,
                                          checksum_type=checksum_type,
-                                         verbose=verbose_folder_checksums)
+                                         verbose=verbose_folder_checksums,
+                                         recursive=recursive)
 
     assert checksums_pre.keys() == checksums_post.keys(), "files don't match"
-
-    if verbose is True:
-        print('comparing checksums...')
 
     matching_checksums = True
     for fname in checksums_pre.keys():
         if verbose is True:
-            print('\t{}...'.format(fname))
+            print('{}...'.format(fname))
 
         if checksums_pre[fname] != checksums_post[fname]:
             matching_checksums = False
             if verbose is True:
-                print(' ***** checksum does not match *****  ')
+                print('\t---- checksum does not match -------')
         elif checksums_pre[fname] == checksums_post[fname]:
             if verbose is True:
-                print('checksum matches.')
+                print('\tchecksum matches.')
+
+    # if verbose is True and matching_checksums is True:
+    #     print('*** checksums match for all files *** ')
+    # if verbose is True and matching_checksums is False:
+    #     print('*** checksums DO NOT match for all files *** ')
 
     return matching_checksums
