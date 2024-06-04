@@ -25,7 +25,8 @@ else:
         pass
 
 def get_rel_path(folder, parent_folder):
-    return str(folder).split(parent_folder)[1]
+    return str(os.path.normpath(folder)).split(
+        os.path.normpath(parent_folder))[1]
 
 
 class TrackDir(object):
