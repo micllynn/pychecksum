@@ -25,8 +25,8 @@ else:
         pass
 
 def get_rel_path(folder, parent_folder):
-    return str(str(os.path.normpath(folder)).split(
-        os.path.normpath(parent_folder))[1])
+    return str(os.path.normpath(folder)).split(
+        os.path.normpath(parent_folder))[1]
 
 
 class TrackDir(object):
@@ -346,7 +346,7 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
         if include_hidden is False:
             path_files = [x.resolve() for x in path_obj.rglob('*')
                           if x.is_file()
-                          and not os.path.split(str(x.resolve()))[-1].startswith('.')]
+                          and not str(os.path.split(str(x.resolve()))[-1]).startswith('.')]
         elif include_hidden is True:
             path_files = [x.resolve() for x in path_obj.rglob('*')
                           if x.is_file()]
