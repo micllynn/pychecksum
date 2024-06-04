@@ -344,9 +344,12 @@ def get_folder_checksum(folder, checksum_type=hashlib.sha256,
         path_obj = pathlib.Path(folder)
 
         if include_hidden is False:
+            # path_files = [x.resolve() for x in path_obj.rglob('*')
+            #               if x.is_file()
+            #               and not str(os.path.split(str(x.resolve()))[-1]).startswith('.')]
             path_files = [x.resolve() for x in path_obj.rglob('*')
                           if x.is_file()
-                          and not str(os.path.split(str(x.resolve()))[-1]).startswith('.')]
+                          and not x.resolve().parts[-1].startswith('.')]
         elif include_hidden is True:
             path_files = [x.resolve() for x in path_obj.rglob('*')
                           if x.is_file()]
