@@ -141,6 +141,8 @@ class FolderSyncObj(object):
         try:
             self.diff_fullpath.local = self.get_diffs_localpaths()
             self.diff_fullpath.server = self.get_diffs_serverpaths()
+            if verbose is True:
+                print(self.diff_fullpath.local)
         except FileNotFoundError:
             print('one of the inputs is not a directory')
 
